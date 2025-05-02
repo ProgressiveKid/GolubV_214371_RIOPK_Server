@@ -30,4 +30,15 @@ namespace CorporateRiskManagementSystemBack.Controllers
             .ToArray();
         }
     }
+
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ApiController : ControllerBase
+    {
+        [HttpGet("hello")]
+        public IActionResult GetHello()
+        {
+            return Ok(new { message = "Hello from the backend!" });
+        }
+    }
 }
