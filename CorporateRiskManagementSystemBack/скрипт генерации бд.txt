@@ -1,0 +1,65 @@
+-- Сброс схемы для чистой генерации
+DROP SCHEMA IF EXISTS corp_risk_management CASCADE;
+CREATE SCHEMA corp_risk_management;
+SET search_path TO corp_risk_management;
+
+-- Таблица пользователей
+CREATE TABLE users (
+    user_id SERIAL PRIMARY KEY,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    full_name VARCHAR(200) NOT NULL,
+    role VARCHAR(50) NOT NULL CHECK (role IN ('Auditor', 'Manager', 'Administrator'))
+);
+
+-- Таблица подразделений
+CREATE TABLE departments (
+    department_id SERIAL PRIMARY KEY,
+    name VARCHAR(150) NOT NULL UNIQUE,
+    description TEXT
+);
+
+-- Таблица рисков
+CREATE TABLE risks (
+    risk_id SERIAL PRIMARY KEY,
+    title VARCHAR(150) NOT NULL,
+    description TEXT,
+    severity VARCHAR(20) NOT NULL CHECK (severity IN ('Low', 'Medium', 'High')),
+    likelihood VARCHAR(20) NOT NULL CHECK (likelihood IN ('Low', 'Medium', 'High')),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_by_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+-- Связь многие-ко-многим между рисками и подразделениями
+CREATE TABLE risk_departments (
+    risk_id INT NOT NULL REFERENCES risks(risk_id) ON DELETE CASCADE,
+    department_id INT NOT NULL REFERENCES departments(department_id) ON DELETE CASCADE,
+    PRIMARY KEY (risk_id, department_id)
+);
+
+-- Таблица аудиторских отчётов
+CREATE TABLE audit_reports (
+    report_id SERIAL PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    author_id INT NOT NULL REFERENCES users(user_id) ON DELETE SET NULL,
+    content TEXT
+);
+
+-- Таблица оценок рисков
+CREATE TABLE risk_assessments (
+    assessment_id SERIAL PRIMARY KEY,
+    risk_id INT NOT NULL REFERENCES risks(risk_id) ON DELETE CASCADE,
+    assessed_by_id INT NOT NULL REFERENCES users(user_id) ON DELETE SET NULL,
+    assessment_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    impact_score SMALLINT CHECK (impact_score BETWEEN 1 AND 10),
+    probability_score SMALLINT CHECK (probability_score BETWEEN 1 AND 10),
+    notes TEXT
+);
+
+-- Индексы для ускорения поиска по FK
+CREATE INDEX idx_risks_created_by ON risks(created_by_id);
+CREATE INDEX idx_assessment_risk ON risk_assessments(risk_id);
+CREATE INDEX idx_assessment_user ON risk_assessments(assessed_by_id);
+CREATE INDEX idx_audit_author ON audit_reports(author_id);
