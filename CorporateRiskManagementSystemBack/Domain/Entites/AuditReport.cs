@@ -11,6 +11,10 @@ namespace CorporateRiskManagementSystemBack.Domain.Entites
         public int AuthorId { get; set; }
         public string? Content { get; set; }
 
+        public int DepartmentId { get; set; }
+
         public virtual User Author { get; set; } = null!;
+
+        public virtual Department Department { get; set; } = null!;
     }
 }

@@ -49,6 +49,8 @@ namespace CorporateRiskManagementSystemBack.Data
 
                 entity.Property(e => e.AuthorId).HasColumnName("author_id");
 
+                entity.Property(e => e.DepartmentId).HasColumnName("department_id");
+
                 entity.Property(e => e.Content).HasColumnName("content");
 
                 entity.Property(e => e.CreatedAt)
@@ -65,6 +67,12 @@ namespace CorporateRiskManagementSystemBack.Data
                     .HasForeignKey(d => d.AuthorId)
                     .OnDelete(DeleteBehavior.SetNull)
                     .HasConstraintName("audit_reports_author_id_fkey");
+
+                entity.HasOne(d => d.Department) // ✅ новая связь
+                   .WithMany(p => p.AuditReports)
+                   .HasForeignKey(d => d.DepartmentId)
+                   .OnDelete(DeleteBehavior.Restrict) // или SetNull, как хочешь
+                   .HasConstraintName("audit_reports_department_id_fkey");
             });
 
             modelBuilder.Entity<Department>(entity =>

@@ -15,5 +15,7 @@ namespace CorporateRiskManagementSystemBack.Domain.Entites
         public string? Description { get; set; }
 
         public virtual ICollection<Risk> Risks { get; set; }
+
+        public virtual ICollection<AuditReport> AuditReports { get; set; } = new List<AuditReport>();
     }
 }
