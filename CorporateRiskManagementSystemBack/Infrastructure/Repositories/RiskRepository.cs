@@ -12,10 +12,17 @@ namespace CorporateRiskManagementSystemBack.Infrastructure.Repositories
         {
             this.db = db;
         }
-
-        public void Create()
+        public int LinkRiskToDepartment(int idRisk, int idDepartment)
         {
+            // db.RiskDe
+            return 1;
+        }
 
+        public int CreateNewRisk(Risk risk)
+        {
+            db.Risks.Add(risk);
+            db.SaveChanges();
+            return risk.RiskId;
         }
         public Risk Get(int id)
         {
@@ -25,7 +32,8 @@ namespace CorporateRiskManagementSystemBack.Infrastructure.Repositories
 
         public IEnumerable<Risk> GetAll()
         {
-            var risk = db.Risks.ToList();
+            //var risk = db.Risks.ToList();
+            var risk = new List<Risk>();
             return risk;
         }
     }

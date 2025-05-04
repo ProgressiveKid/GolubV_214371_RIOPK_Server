@@ -4,8 +4,9 @@ namespace CorporateRiskManagementSystemBack.Application.Interfaces
 {
     public interface IRiskService
     {
-        void CreateRisk(int id);
+        int CreateRisk(Risk risk);
 
+        int LinkRiskToDepartment(int idRisk, int idDepartment);
         List<Risk> GetAllRisks();
     }
 }

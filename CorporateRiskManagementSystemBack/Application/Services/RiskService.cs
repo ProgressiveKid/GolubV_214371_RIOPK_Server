@@ -14,13 +14,12 @@ namespace CorporateRiskManagementSystemBack.Application.Services
         {
             _riskRepository = riskRepository;
         }
-        public void CreateRisk(int i)
-        {
-            Console.WriteLine();
-        }
+        public int CreateRisk(Risk risk) => _riskRepository.CreateNewRisk(risk);
+        public int LinkRiskToDepartment(
+            int idRisk,
+            int idDepartment)
+            => _riskRepository.LinkRiskToDepartment(idRisk, idDepartment);
 
         public List<Risk> GetAllRisks() => _riskRepository.GetAll().ToList();
-
-        // Потом всё по подразделению
     }
 }

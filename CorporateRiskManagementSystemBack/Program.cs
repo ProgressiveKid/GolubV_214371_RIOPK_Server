@@ -3,6 +3,7 @@ using CorporateRiskManagementSystemBack.Application.Services;
 using CorporateRiskManagementSystemBack.Data;
 using CorporateRiskManagementSystemBack.Infrastructure.Repositories;
 using CorporateRiskManagementSystemBack.Infrastructure.Repositories.Interfaces;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
@@ -15,17 +16,29 @@ namespace CorporateRiskManagementSystemBack
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+
             // ƒобавл€ем CORS
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy("AllowLocalhost",
-                    policy =>
-                    {
-                        policy.WithOrigins("https://localhost:7100")  // –азрешаем запросы с этого адреса
-                              .AllowAnyHeader()
-                              .AllowAnyMethod();
-                    });
+                options.AddPolicy("AllowLocalhost", policy =>
+                {
+                    policy.WithOrigins("https://localhost:7100")  // URL фронтенда
+                          .AllowAnyHeader()
+                          .AllowAnyMethod()
+                          .AllowCredentials();  // Ёто важно, чтобы куки передавались
+                });
             });
+
+            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(options =>
+                {
+                    options.Cookie.SameSite = SameSiteMode.None; // SameSite политики, чтобы куки работали в разных приложени€х
+                    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                    options.Cookie.Path = "/";
+                });
+
+
+
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
@@ -44,11 +57,21 @@ namespace CorporateRiskManagementSystemBack
                 app.UseSwaggerUI();
             }
             // »спользуем CORS
+            app.UseRouting();
             app.UseCors("AllowLocalhost");
 
             app.UseHttpsRedirection();
-
+            app.UseStaticFiles();
+            app.UseAuthentication();
             app.UseAuthorization();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllerRoute(
+                    name: "autorisationRoute",
+                    pattern: "AutorisationF/Autorisation",
+                    defaults: new { controller = "AuthController", action = "Autorisation" });
+            });
 
             app.MapControllers();
 
