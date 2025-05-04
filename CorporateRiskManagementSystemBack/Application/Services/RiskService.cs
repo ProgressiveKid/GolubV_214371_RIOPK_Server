@@ -21,5 +21,8 @@ namespace CorporateRiskManagementSystemBack.Application.Services
             => _riskRepository.LinkRiskToDepartment(idRisk, idDepartment);
 
         public List<Risk> GetAllRisks() => _riskRepository.GetAll().ToList();
+
+        public List<Risk> GetRisksForDepartment(int departmentId) => _riskRepository.GetRisksForDepartment(departmentId);
+
     }
 }

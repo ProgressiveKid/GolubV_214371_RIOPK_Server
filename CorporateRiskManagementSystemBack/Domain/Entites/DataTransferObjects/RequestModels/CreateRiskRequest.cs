@@ -7,5 +7,7 @@
         public string Severity { get; set; }
         public string Likelihood { get; set; }
         public int DepartmentId { get; set; }  // ID отдела
+        public string UsernameId { get; set; }
+
     }
 }

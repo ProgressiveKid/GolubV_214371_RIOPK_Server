@@ -2,7 +2,7 @@
 
 namespace CorporateRiskManagementSystemBack.Application.Services
 {
-    public class UserService
+    public class UserService : IUserService
     {
         RiskDbContext _db;
 

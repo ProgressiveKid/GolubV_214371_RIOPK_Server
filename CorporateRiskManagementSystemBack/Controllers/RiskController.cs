@@ -39,7 +39,8 @@ namespace CorporateRiskManagementSystemBack.Controllers
             {
                 return BadRequest("Пустые данные");
             }
-            var userId = _userService.GetUserIdByName(User.Identity.Name);
+            
+            var userId = _userService.GetUserIdByName(request.UsernameId);
             if (userId == 0)
             {
                 return BadRequest("Пользователь с авторизоавнным юзернейном не найден");
@@ -56,12 +57,17 @@ namespace CorporateRiskManagementSystemBack.Controllers
             };
 
             var createdRiskId = _riskService.CreateRisk(newRisk);
-
-            // Логика для создания риска
-            // Например, сохранить в базе данных
-            // _context.Risks.Add(new Risk { ... });
+            var linkedDepartment = _riskService.LinkRiskToDepartment(createdRiskId, request.DepartmentId);
 
             return Ok(new { message = "Risk created successfully" });
+        }
+
+        [HttpGet("GetRisksForDepartment")]
+        public async Task<JsonResult> GetRisksForDepartment([FromBody] FindRiskForDeraprtmentReques request)
+        {
+            var departmentRisks = _riskService.GetRisksForDepartment(request.DepartmentId);
+
+            return Json(departmentRisks);
         }
 
         // GET: RiskController

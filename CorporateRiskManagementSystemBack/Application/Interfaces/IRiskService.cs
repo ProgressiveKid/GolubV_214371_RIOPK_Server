@@ -8,5 +8,7 @@ namespace CorporateRiskManagementSystemBack.Application.Interfaces
 
         int LinkRiskToDepartment(int idRisk, int idDepartment);
         List<Risk> GetAllRisks();
+        List<Risk> GetRisksForDepartment(int departmentId);
+
     }
 }

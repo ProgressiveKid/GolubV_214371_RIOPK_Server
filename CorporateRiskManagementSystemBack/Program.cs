@@ -32,6 +32,7 @@ namespace CorporateRiskManagementSystemBack
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
                 {
+                    options.Cookie.Name = "AuthCookie"; // ДОЛЖНО БЫТЬ ТОЧНО ТАКОЕ ЖЕ имя
                     options.Cookie.SameSite = SameSiteMode.None; // SameSite политики, чтобы куки работали в разных приложениях
                     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
                     options.Cookie.Path = "/";
@@ -48,6 +49,9 @@ namespace CorporateRiskManagementSystemBack
             builder.Services.AddDbContext<RiskDbContext>(options => options.UseNpgsql(connection)); // подключение к бд
             builder.Services.AddScoped<IRiskRepository, RiskRepository>();
             builder.Services.AddScoped<IRiskService, RiskService>();
+            builder.Services.AddScoped<IUserService, UserService>();
+            
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

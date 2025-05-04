@@ -8,19 +8,13 @@ namespace CorporateRiskManagementSystemBack.Data
 {
     public partial class RiskDbContext : DbContext
     {
+        public RiskDbContext()
+        {
+        }
+
         public RiskDbContext(DbContextOptions<RiskDbContext> options)
             : base(options)
         {
-            if (Database.CanConnect())
-            {
-                //Database.EnsureDeleted();
-                //Database.EnsureCreated();
-                Console.WriteLine("sssss");
-            }
-            else
-            {
-                //Database.EnsureCreated();
-            }
         }
 
         public virtual DbSet<AuditReport> AuditReports { get; set; } = null!;
@@ -31,7 +25,10 @@ namespace CorporateRiskManagementSystemBack.Data
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-
+            if (!optionsBuilder.IsConfigured)
+            {
+                optionsBuilder.UseNpgsql("Name=DefaultConnection");
+            }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -45,11 +42,11 @@ namespace CorporateRiskManagementSystemBack.Data
 
                 entity.HasIndex(e => e.AuthorId, "idx_audit_author");
 
+                entity.HasIndex(e => e.DepartmentId, "idx_audit_department");
+
                 entity.Property(e => e.ReportId).HasColumnName("report_id");
 
                 entity.Property(e => e.AuthorId).HasColumnName("author_id");
-
-                entity.Property(e => e.DepartmentId).HasColumnName("department_id");
 
                 entity.Property(e => e.Content).HasColumnName("content");
 
@@ -57,6 +54,8 @@ namespace CorporateRiskManagementSystemBack.Data
                     .HasColumnType("timestamp without time zone")
                     .HasColumnName("created_at")
                     .HasDefaultValueSql("now()");
+
+                entity.Property(e => e.DepartmentId).HasColumnName("department_id");
 
                 entity.Property(e => e.Title)
                     .HasMaxLength(200)
@@ -68,11 +67,11 @@ namespace CorporateRiskManagementSystemBack.Data
                     .OnDelete(DeleteBehavior.SetNull)
                     .HasConstraintName("audit_reports_author_id_fkey");
 
-                entity.HasOne(d => d.Department) // ✅ новая связь
-                   .WithMany(p => p.AuditReports)
-                   .HasForeignKey(d => d.DepartmentId)
-                   .OnDelete(DeleteBehavior.Restrict) // или SetNull, как хочешь
-                   .HasConstraintName("audit_reports_department_id_fkey");
+                entity.HasOne(d => d.Department)
+                    .WithMany(p => p.AuditReports)
+                    .HasForeignKey(d => d.DepartmentId)
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .HasConstraintName("audit_reports_department_id_fkey");
             });
 
             modelBuilder.Entity<Department>(entity =>
