@@ -63,9 +63,9 @@ namespace CorporateRiskManagementSystemBack.Controllers
         }
 
         [HttpGet("GetRisksForDepartment")]
-        public async Task<JsonResult> GetRisksForDepartment([FromBody] FindRiskForDeraprtmentReques request)
+        public async Task<JsonResult> GetRisksForDepartment([FromQuery] int departmentId)
         {
-            var departmentRisks = _riskService.GetRisksForDepartment(request.DepartmentId);
+            var departmentRisks = _riskService.GetRisksForDepartment(departmentId);
 
             return Json(departmentRisks);
         }
