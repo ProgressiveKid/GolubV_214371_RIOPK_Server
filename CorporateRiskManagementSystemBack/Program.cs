@@ -1,4 +1,4 @@
-using CorporateRiskManagementSystemBack.Application.Interfaces;
+п»їusing CorporateRiskManagementSystemBack.Application.Interfaces;
 using CorporateRiskManagementSystemBack.Application.Services;
 using CorporateRiskManagementSystemBack.Data;
 using CorporateRiskManagementSystemBack.Infrastructure.Repositories;
@@ -6,6 +6,7 @@ using CorporateRiskManagementSystemBack.Infrastructure.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+using System.Text.Json.Serialization;
 
 namespace CorporateRiskManagementSystemBack
 {
@@ -17,36 +18,40 @@ namespace CorporateRiskManagementSystemBack
 
             // Add services to the container.
 
-            // Добавляем CORS
+            // Р”РѕР±Р°РІР»СЏРµРј CORS
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowLocalhost", policy =>
                 {
-                    policy.WithOrigins("https://localhost:7100")  // URL фронтенда
+                    policy.WithOrigins("https://localhost:7100")  // URL С„СЂРѕРЅС‚РµРЅРґР°
                           .AllowAnyHeader()
                           .AllowAnyMethod()
-                          .AllowCredentials();  // Это важно, чтобы куки передавались
+                          .AllowCredentials();  // Р­С‚Рѕ РІР°Р¶РЅРѕ, С‡С‚РѕР±С‹ РєСѓРєРё РїРµСЂРµРґР°РІР°Р»РёСЃСЊ
                 });
             });
 
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
                 {
-                    options.Cookie.Name = "AuthCookie"; // ДОЛЖНО БЫТЬ ТОЧНО ТАКОЕ ЖЕ имя
-                    options.Cookie.SameSite = SameSiteMode.None; // SameSite политики, чтобы куки работали в разных приложениях
+                    options.Cookie.Name = "AuthCookie"; // Р”РћР›Р–РќРћ Р‘Р«РўР¬ РўРћР§РќРћ РўРђРљРћР• Р–Р• РёРјСЏ
+                    options.Cookie.SameSite = SameSiteMode.None; // SameSite РїРѕР»РёС‚РёРєРё, С‡С‚РѕР±С‹ РєСѓРєРё СЂР°Р±РѕС‚Р°Р»Рё РІ СЂР°Р·РЅС‹С… РїСЂРёР»РѕР¶РµРЅРёСЏС…
                     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
                     options.Cookie.Path = "/";
                 });
 
 
             builder.Services.AddMemoryCache();
-            builder.Services.AddControllers();
+            builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+                });
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
             string connection = builder.Configuration.GetConnectionString("DefaultConnection");
-            builder.Services.AddDbContext<RiskDbContext>(options => options.UseNpgsql(connection)); // подключение к бд
+            builder.Services.AddDbContext<RiskDbContext>(options => options.UseNpgsql(connection)); // РїРѕРґРєР»СЋС‡РµРЅРёРµ Рє Р±Рґ
             builder.Services.AddScoped<IRiskRepository, RiskRepository>();
             builder.Services.AddScoped<IRiskService, RiskService>();
             builder.Services.AddScoped<IUserService, UserService>();
@@ -60,7 +65,7 @@ namespace CorporateRiskManagementSystemBack
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-            // Используем CORS
+            // РСЃРїРѕР»СЊР·СѓРµРј CORS
             app.UseRouting();
             app.UseCors("AllowLocalhost");
 

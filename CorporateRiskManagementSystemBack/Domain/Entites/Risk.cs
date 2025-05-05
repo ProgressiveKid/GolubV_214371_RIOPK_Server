@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CorporateRiskManagementSystemBack.Domain.Entites
 {
@@ -23,5 +24,8 @@ namespace CorporateRiskManagementSystemBack.Domain.Entites
         public virtual ICollection<RiskAssessment> RiskAssessments { get; set; }
 
         public virtual ICollection<Department> Departments { get; set; }
+
+        [NotMapped]
+        public bool IsHaveAssessment => RiskAssessments.Count != 0;
     }
 }

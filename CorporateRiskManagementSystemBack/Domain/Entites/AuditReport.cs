@@ -16,5 +16,6 @@ namespace CorporateRiskManagementSystemBack.Domain.Entites
         public virtual User Author { get; set; } = null!;
 
         public virtual Department Department { get; set; } = null!;
+
     }
 }

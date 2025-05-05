@@ -2,8 +2,6 @@
 using CorporateRiskManagementSystemBack.Application.Services;
 using CorporateRiskManagementSystemBack.Domain.Entites;
 using CorporateRiskManagementSystemBack.Domain.Entites.DataTransferObjects.RequestModels;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CorporateRiskManagementSystemBack.Controllers
@@ -68,6 +66,72 @@ namespace CorporateRiskManagementSystemBack.Controllers
             var departmentRisks = _riskService.GetRisksForDepartment(departmentId);
 
             return Json(departmentRisks);
+        }
+
+        [HttpGet("GetAssessmentForRisk")]
+        public async Task<JsonResult> GetAssessmentForRisk([FromQuery] int riskId)
+        {
+            var assessment = _riskService.GetAssessmentForRisk(riskId);
+
+            return Json(assessment);
+        }
+
+        [HttpPut("EditAssessment")]
+        public async Task<IActionResult> EditAssessment([FromBody] RiskAssessmentRequest request)
+        {
+            var userId = _userService.GetUserIdByName(request.UsernameId);
+            if (userId == 0)
+            {
+                return BadRequest("Пользователь с авторизоавнным юзернейном не найден");
+
+            }
+            var assessment = _riskService.GetAssessmentForRisk(request.RiskId);
+            var riskAssessment = new RiskAssessment()
+            {
+                AssessmentId = assessment.AssessmentId,
+                RiskId = request.RiskId,
+                AssessedById = userId,
+                AssessmentDate = request.AssessmentDate,
+                ImpactScore = (short)request.ImpactScore,
+                ProbabilityScore = (short)request.ProbabilityScore,
+                Notes = request.Notes,
+            };
+
+            var updatedAssessment = _riskService.UpdateRiskAssessment(riskAssessment);
+
+            return Json(updatedAssessment);
+        }
+
+        [HttpGet("CheckRisksAssessmentForDepartment")]
+        public async Task<JsonResult> CheckRisksAssessmentForDepartment([FromQuery] int departmentId)
+        {
+            List<Risk> departmentsRisks = _riskService.GetRisksForDepartment(departmentId).ToList();
+            var countNeddedAssesments = departmentsRisks.Where(x => !x.IsHaveAssessment).ToList();
+            return Json(countNeddedAssesments.Count());
+        }
+
+        [HttpPost("AddAssessments")]
+        public async Task<IActionResult> AddAssessments([FromBody] RiskAssessmentRequest request)
+        {
+            var userId = _userService.GetUserIdByName(request.UsernameId);
+            if (userId == 0)
+            {
+                return BadRequest("Пользователь с авторизоавнным юзернейном не найден");
+
+            }
+
+            var riskAssessment = new RiskAssessment()
+            {
+                RiskId = request.RiskId,
+                AssessedById = userId,
+                AssessmentDate = request.AssessmentDate,
+                ImpactScore = (short)request.ImpactScore,
+                ProbabilityScore = (short)request.ProbabilityScore,
+                Notes = request.Notes,
+            };
+
+            var createRiskAssessment = _riskService.CreateRiskAssessment(riskAssessment);
+            return Ok(new { message = "Оценка успешно добавлена" });
         }
 
         // GET: RiskController

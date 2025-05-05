@@ -72,6 +72,7 @@ namespace CorporateRiskManagementSystemBack.Data
                     .HasForeignKey(d => d.DepartmentId)
                     .OnDelete(DeleteBehavior.Restrict)
                     .HasConstraintName("audit_reports_department_id_fkey");
+
             });
 
             modelBuilder.Entity<Department>(entity =>
