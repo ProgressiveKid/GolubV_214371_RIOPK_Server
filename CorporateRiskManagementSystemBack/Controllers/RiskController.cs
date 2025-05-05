@@ -85,13 +85,15 @@ namespace CorporateRiskManagementSystemBack.Controllers
                 return BadRequest("Пользователь с авторизоавнным юзернейном не найден");
 
             }
+            var dateTimeUtc = new DateTime(request.AssessmentDate.Year, request.AssessmentDate.Month, request.AssessmentDate.Day, 0, 0, 0, DateTimeKind.Utc);
+
             var assessment = _riskService.GetAssessmentForRisk(request.RiskId);
             var riskAssessment = new RiskAssessment()
             {
                 AssessmentId = assessment.AssessmentId,
                 RiskId = request.RiskId,
                 AssessedById = userId,
-                AssessmentDate = request.AssessmentDate,
+                AssessmentDate = dateTimeUtc,
                 ImpactScore = (short)request.ImpactScore,
                 ProbabilityScore = (short)request.ProbabilityScore,
                 Notes = request.Notes,
@@ -119,12 +121,12 @@ namespace CorporateRiskManagementSystemBack.Controllers
                 return BadRequest("Пользователь с авторизоавнным юзернейном не найден");
 
             }
-
+            var dateTimeUtc = new DateTime(request.AssessmentDate.Year, request.AssessmentDate.Month, request.AssessmentDate.Day, 0, 0, 0, DateTimeKind.Utc);
             var riskAssessment = new RiskAssessment()
             {
                 RiskId = request.RiskId,
                 AssessedById = userId,
-                AssessmentDate = request.AssessmentDate,
+                AssessmentDate = dateTimeUtc,
                 ImpactScore = (short)request.ImpactScore,
                 ProbabilityScore = (short)request.ProbabilityScore,
                 Notes = request.Notes,
