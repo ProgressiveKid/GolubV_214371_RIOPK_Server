@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using CorporateRiskManagementSystemBack.Domain.Entites;
 
-namespace CorporateRiskManagementSystemBack.Data
+namespace CorporateRiskManagementSystemBack.Infrastructure.Data
 {
     public partial class RiskDbContext : DbContext
     {

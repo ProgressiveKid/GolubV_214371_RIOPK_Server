@@ -1,10 +1,10 @@
-﻿using CorporateRiskManagementSystemBack.Data;
-using CorporateRiskManagementSystemBack.Domain.Entites;
+﻿using CorporateRiskManagementSystemBack.Domain.Entites;
+using CorporateRiskManagementSystemBack.Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 
-namespace CorporateRiskManagementSystemBack.Controllers
+namespace CorporateRiskManagementSystemBack.API.Controllers
 {
     [Route("[controller]")]
     [ApiController]

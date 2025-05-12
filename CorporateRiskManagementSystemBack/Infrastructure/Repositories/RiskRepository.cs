@@ -1,6 +1,6 @@
 ﻿using CorporateRiskManagementSystemBack.Application.Interfaces;
-using CorporateRiskManagementSystemBack.Data;
 using CorporateRiskManagementSystemBack.Domain.Entites;
+using CorporateRiskManagementSystemBack.Infrastructure.Data;
 using CorporateRiskManagementSystemBack.Infrastructure.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;

@@ -1,4 +1,4 @@
-﻿using CorporateRiskManagementSystemBack.Data;
+﻿using CorporateRiskManagementSystemBack.Infrastructure.Data;
 using CorporateRiskManagementSystemBack.Domain.Entites;
 
 namespace CorporateRiskManagementSystemBack.Infrastructure.Repositories.Interfaces

@@ -4,7 +4,7 @@ using CorporateRiskManagementSystemBack.Domain.Entites;
 using CorporateRiskManagementSystemBack.Domain.Entites.DataTransferObjects.RequestModels;
 using Microsoft.AspNetCore.Mvc;
 
-namespace CorporateRiskManagementSystemBack.Controllers
+namespace CorporateRiskManagementSystemBack.API.Controllers
 {
     [Route("[controller]")]
     [ApiController]
@@ -37,7 +37,7 @@ namespace CorporateRiskManagementSystemBack.Controllers
             {
                 return BadRequest("Пустые данные");
             }
-            
+
             var userId = _userService.GetUserIdByName(request.UsernameId);
             if (userId == 0)
             {
@@ -137,78 +137,10 @@ namespace CorporateRiskManagementSystemBack.Controllers
         }
 
         // GET: RiskController
+        [HttpGet("Index")]
         public ActionResult Index()
         {
             return View();
-        }
-
-        // GET: RiskController/Details/5
-        public ActionResult Details(int id)
-        {
-            return View();
-        }
-
-        // GET: RiskController/Create
-        public ActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: RiskController/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
-        }
-
-        // GET: RiskController/Edit/5
-        public ActionResult Edit(int id)
-        {
-            return View();
-        }
-
-        // POST: RiskController/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
-        }
-
-        // GET: RiskController/Delete/5
-        public ActionResult Delete(int id)
-        {
-            return View();
-        }
-
-        // POST: RiskController/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
         }
     }
 }

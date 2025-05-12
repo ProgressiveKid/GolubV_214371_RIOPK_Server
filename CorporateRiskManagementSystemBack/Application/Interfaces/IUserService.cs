@@ -1,4 +1,4 @@
-﻿using CorporateRiskManagementSystemBack.Data;
+﻿using CorporateRiskManagementSystemBack.Infrastructure.Data;
 
 namespace CorporateRiskManagementSystemBack.Application.Services
 {

@@ -1,13 +1,13 @@
 ﻿using CorporateRiskManagementSystemBack.Domain.Entites.DataTransferObjects.RequestModels;
 using CorporateRiskManagementSystemBack.Domain.Entites;
 using Microsoft.AspNetCore.Mvc;
-using CorporateRiskManagementSystemBack.Data;
 using CorporateRiskManagementSystemBack.Application.Interfaces;
 using CorporateRiskManagementSystemBack.Application.Services;
 using iTextSharp.text.pdf;
 using iTextSharp.text;
+using CorporateRiskManagementSystemBack.Infrastructure.Data;
 
-namespace CorporateRiskManagementSystemBack.Controllers
+namespace CorporateRiskManagementSystemBack.API.Controllers
 {
     [Route("[controller]")]
     [ApiController]
@@ -35,7 +35,6 @@ namespace CorporateRiskManagementSystemBack.Controllers
             if (userId == 0)
             {
                 return BadRequest("Пользователь с авторизоавнным юзернейном не найден");
-
             }
 
             var report = new AuditReport

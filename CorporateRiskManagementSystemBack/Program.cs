@@ -1,12 +1,12 @@
 ﻿using CorporateRiskManagementSystemBack.Application.Interfaces;
 using CorporateRiskManagementSystemBack.Application.Services;
-using CorporateRiskManagementSystemBack.Data;
 using CorporateRiskManagementSystemBack.Infrastructure.Repositories;
 using CorporateRiskManagementSystemBack.Infrastructure.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using System.Text.Json.Serialization;
+using CorporateRiskManagementSystemBack.Infrastructure.Data;
 
 namespace CorporateRiskManagementSystemBack
 {
