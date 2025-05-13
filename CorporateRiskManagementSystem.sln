@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CorporateRiskManagementSyst
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CorporateRiskManagementSystem.Frontend", "..\CorporateRiskManagementSystem.Frontend\CorporateRiskManagementSystem.Frontend.csproj", "{B1393B48-4C74-4D50-BD58-87BEF6C7E492}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestCRMS", "TestCRMS\TestCRMS.csproj", "{1A596469-4D74-4389-AD6D-2FC160645569}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{B1393B48-4C74-4D50-BD58-87BEF6C7E492}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B1393B48-4C74-4D50-BD58-87BEF6C7E492}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B1393B48-4C74-4D50-BD58-87BEF6C7E492}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A596469-4D74-4389-AD6D-2FC160645569}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A596469-4D74-4389-AD6D-2FC160645569}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A596469-4D74-4389-AD6D-2FC160645569}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A596469-4D74-4389-AD6D-2FC160645569}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

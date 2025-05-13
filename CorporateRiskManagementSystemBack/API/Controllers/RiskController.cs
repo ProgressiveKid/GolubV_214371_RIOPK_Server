@@ -24,7 +24,7 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
             var aa = User.Identity;
             if (User.IsInRole("Auditor"))
             {
-                Console.WriteLine("asdsad");
+                Console.WriteLine("Hello");
             }
             var allRisks = _riskService.GetAllRisks();
             return Json(allRisks);
