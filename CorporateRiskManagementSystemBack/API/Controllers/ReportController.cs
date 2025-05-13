@@ -16,6 +16,11 @@ using iText.IO.Font;
 using iText.Kernel.Geom;
 using Path = System.IO.Path;
 using Org.BouncyCastle.Utilities;
+using iText.Kernel.Pdf.Canvas;
+using iText.Kernel.Pdf.Extgstate;
+using iText.Layout.Borders;
+using iText.Kernel.Colors;
+using iText.Kernel.Pdf.Xobject;
 
 namespace CorporateRiskManagementSystemBack.API.Controllers
 {
@@ -55,7 +60,8 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
             {
                 return BadRequest("Content cannot be empty.");                
             }
-
+            var departament = db.Departments.FirstOrDefault(x => x.DepartmentId == request.DepartmentId);
+         
             var report = new AuditReport
             {
                 AuthorId = userId,
@@ -110,10 +116,25 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
                     // Уменьшаем изображение пропорционально, чтобы оно вписалось в указанные размеры
                     img.ScaleToFit(maxWidth, maxHeight);
 
+                    // Получаем размеры страницы
+                    PageSize pageSize = pdf.GetDefaultPageSize();
+                    float pageWidth = pageSize.GetWidth();
+                    float pageHeight = pageSize.GetHeight();
+
+                    // Координаты: правый верхний угол с отступом
+                    float x = pageWidth - img.GetImageScaledWidth() - 20;
+                    float y = pageHeight - img.GetImageScaledHeight() - 20;
+
+                    // Установка абсолютной позиции и прозрачности
+                    img.SetFixedPosition(1, x, y); // страница 1, координаты
+                    //img.SetOpacity(0.3f); // 30% прозрачность
                     container.Add(img);
                 }
+                document.Add(new Paragraph($"Аудиторский отчет от: {DateTime.Now.ToShortDateString()}"));
+                document.Add(new Paragraph($"По подразделению: {departament.Name}"));
 
                 document.Add(container);
+
                 document.Add(new Paragraph($"Уникальный идентификатор пользователя: {userId}"));
                 document.Add(new Paragraph($"ФИО аудитора: {user.FullName}"));
                 document.Add(new Paragraph($"Электронная почта: {user.Email}"));

@@ -31,9 +31,4 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Application\UseCases\" />
-    <Folder Include="Infrastructure\Auth\" />
-  </ItemGroup>
-
 </Project>
