@@ -51,6 +51,10 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
             {
                 return BadRequest("Пользователь с авторизоавнным юзернейном не найден");
             }
+            if (string.IsNullOrWhiteSpace(request.Content))
+            {
+                return BadRequest("Content cannot be empty.");                
+            }
 
             var report = new AuditReport
             {
@@ -118,7 +122,9 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
                 float[] columnWidths = { 1, 2, 1, 2, 2, 2};  // Количество столбцов и их ширина (относительная, в части от всей ширины страницы)
 
                 Table table = new Table(UnitValue.CreatePercentArray(columnWidths));
-
+                // Загружаем шрифт для емодзи
+                string emojiFontPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "seguiemj.ttf");
+                PdfFont emojiFont = PdfFontFactory.CreateFont(emojiFontPath, PdfEncodings.IDENTITY_H);
                 // Устанавливаем таблицу на всю ширину
                 // Устанавливаем столбцы с заданной шириной
                 // Добавляем заголовки столбцов
@@ -142,10 +148,19 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
                     var impactScore = string.Empty;
                     for (int i = 0; i < Convert.ToInt64(departmentRisksAssessment.ImpactScore); i++)
                     {
-                        impactScore += "🔥";
+                        impactScore += "🔥"; 
                     }
-                    table.AddCell(departmentRisksAssessment.ImpactScore.ToString() + '|' + impactScore);
-                    table.AddCell(departmentRisksAssessment.ProbabilityScore.ToString());
+                    // 🔥 Ячейка только с огнём и emoji-шрифтом
+                    Paragraph fireEmoji = new Paragraph(impactScore).SetFont(emojiFont).SetFontSize(10);
+                    // Можешь варьировать размер
+                    table.AddCell(new Cell().Add(fireEmoji));
+                    var probabilityScore = string.Empty;
+                    for (int i = 0; i < Convert.ToInt64(departmentRisksAssessment.ProbabilityScore); i++)
+                    {
+                        probabilityScore += "🎲";
+                    }
+                    Paragraph cubeEmoji = new Paragraph(probabilityScore).SetFont(emojiFont).SetFontSize(10);
+                    table.AddCell(new Cell().Add(cubeEmoji));
 
                 }
 
@@ -166,14 +181,6 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
             var canBeReportBuild = _riskService.GetRisksForDepartment(departmentId)
                         .TrueForAll(x => x.IsHaveAssessment);
             return Json(canBeReportBuild);
-        }
-
-        [HttpGet("GetReports")]
-        public async Task<IActionResult> GetReport([FromQuery] int departmentId)
-        {
-
-
-            return Ok(new { message = "Risk created successfully" });
         }
     }
 }
