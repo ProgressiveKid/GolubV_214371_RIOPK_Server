@@ -2,7 +2,7 @@
 using CorporateRiskManagementSystemBack.Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore; // <-- Не забудьте добавить
+using Microsoft.EntityFrameworkCore;
 using System.Net.Http.Json;
 using System.Net;
 using FluentAssertions;
