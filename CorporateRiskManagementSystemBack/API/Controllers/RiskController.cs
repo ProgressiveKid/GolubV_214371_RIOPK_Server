@@ -2,6 +2,7 @@
 using CorporateRiskManagementSystemBack.Application.Services;
 using CorporateRiskManagementSystemBack.Domain.Entites;
 using CorporateRiskManagementSystemBack.Domain.Entites.DataTransferObjects.RequestModels;
+using CorporateRiskManagementSystemBack.Domain.Entites.Enums;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CorporateRiskManagementSystemBack.API.Controllers
@@ -28,6 +29,13 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
             }
             var allRisks = _riskService.GetAllRisks();
             return Json(allRisks);
+        }
+
+        [HttpGet("GetAllRisksTypes")]
+        public JsonResult GetAllRisksTypes()
+        {
+            var allRiskTypes = Enum.GetNames(typeof(RiskType));
+            return Json(allRiskTypes);
         }
 
         [HttpPost("CreateRisk")]

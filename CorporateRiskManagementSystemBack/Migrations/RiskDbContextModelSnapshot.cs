@@ -121,6 +121,9 @@ namespace CorporateRiskManagementSystemBack.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("likelihood");
 
+                    b.Property<int>("RiskType")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Severity")
                         .IsRequired()
                         .HasMaxLength(20)

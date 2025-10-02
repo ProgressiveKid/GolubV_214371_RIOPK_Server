@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using CorporateRiskManagementSystemBack.Domain.Entites.Enums;
 
 namespace CorporateRiskManagementSystemBack.Domain.Entites
 {
@@ -17,6 +18,7 @@ namespace CorporateRiskManagementSystemBack.Domain.Entites
         public string? Description { get; set; }
         public string Severity { get; set; } = null!;
         public string Likelihood { get; set; } = null!;
+        public RiskType RiskType { get; set; }
         public DateTime CreatedAt { get; set; }
         public int CreatedById { get; set; }
 
