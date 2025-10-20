@@ -46,7 +46,7 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
                 return BadRequest("Пустые данные");
             }
 
-            var userId = _userService.GetUserIdByName(request.UsernameId);
+            var userId = _userService.GetUserIdByEmail(request.UsernameId);
             if (userId == 0)
             {
                 return BadRequest("Пользователь с авторизоавнным юзернейном не найден");
@@ -57,6 +57,7 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
                 CreatedById = userId,
                 CreatedAt = DateTime.Now,
                 Title = request.Title,
+                RiskType = RiskType.Operational, // TO DO сделать чтобы их request тянулось
                 Description = request.Description,
                 Likelihood = request.Likelihood,
                 Severity = request.Severity,

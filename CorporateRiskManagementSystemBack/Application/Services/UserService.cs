@@ -12,5 +12,8 @@ namespace CorporateRiskManagementSystemBack.Application.Services
         }
 
         public int GetUserIdByName(string username) => _db.Users.FirstOrDefault(u => u.Username == username).UserId;
+
+        public int GetUserIdByEmail(string email) => _db.Users.FirstOrDefault(u => u.Email == email).UserId;
+
     }
 }

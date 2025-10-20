@@ -10,6 +10,7 @@ namespace CorporateRiskManagementSystemBack.Domain.Entites
         public DateTime CreatedAt { get; set; }
         public int AuthorId { get; set; }
         public string? Content { get; set; }
+        public byte[] PdfReport { get; set; }
 
         public int DepartmentId { get; set; }
 

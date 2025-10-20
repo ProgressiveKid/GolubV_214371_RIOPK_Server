@@ -50,6 +50,8 @@ namespace CorporateRiskManagementSystemBack.Infrastructure.Data
 
                 entity.Property(e => e.Content).HasColumnName("content");
 
+                entity.Property(e => e.PdfReport).HasColumnName("pdf_report");
+
                 entity.Property(e => e.CreatedAt)
                     .HasColumnType("timestamp without time zone")
                     .HasColumnName("created_at")

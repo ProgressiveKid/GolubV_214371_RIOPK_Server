@@ -21,6 +21,8 @@ using iText.Kernel.Pdf.Extgstate;
 using iText.Layout.Borders;
 using iText.Kernel.Colors;
 using iText.Kernel.Pdf.Xobject;
+using System.IO;
+using Microsoft.EntityFrameworkCore;
 
 namespace CorporateRiskManagementSystemBack.API.Controllers
 {
@@ -47,10 +49,6 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
                 return BadRequest("Необходимо выполнить оценку всех существующих рисков для отдела");
             }
           
-            if (departmentRisks.TrueForAll(u => !u.IsHaveAssessment))
-            {
-                return BadRequest("Необходимо выполнить оценку всех существующих рисков для отдела");
-            }
             var userId = _userService.GetUserIdByName(request.Username);
             if (userId == 0)
             {
@@ -58,35 +56,37 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
             }
             if (string.IsNullOrWhiteSpace(request.Content))
             {
-                return BadRequest("Content cannot be empty.");                
+                return BadRequest("Описание отчета не может быть пустым");                
             }
             var departament = db.Departments.FirstOrDefault(x => x.DepartmentId == request.DepartmentId);
-         
+
             var report = new AuditReport
             {
                 AuthorId = userId,
                 CreatedAt = DateTime.Now,
                 Content = request.Content,
+                Title = $"Аудиторский отчет от: {DateTime.Now.ToShortDateString()} по подразделению {departament.Name}",
                 DepartmentId = request.DepartmentId,
             };
 
             string username = request.Username;
             var user = db.Users.FirstOrDefault(u => u.Email == username);
             if (user == null)
-                return BadRequest("Не найден пользователь");
+                return BadRequest("Не найден автор отчёта");
 
             string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             string reportsFolderPath = Path.Combine(documentsPath, "Reports");
             Directory.CreateDirectory(reportsFolderPath);
             string pdfPath = Path.Combine(reportsFolderPath, $"{username}_doc.pdf");
-
+            byte[] pdfBytes; // Объявляем переменную для хранения байтов PDF
             string fontPath = Path.Combine(Directory.GetCurrentDirectory(), "Properties", "ARIAL.TTF");
             string imagePath = Path.Combine(Directory.GetCurrentDirectory(), "Properties", "logo.png");
 
-            using (var writer = new PdfWriter(pdfPath))
+            using (var memoryStream = new MemoryStream())
+            using (var writer = new PdfWriter(memoryStream))  // ТОЛЬКО ОДИН writer!
             using (var pdf = new PdfDocument(writer))
+            using (var document = new Document(pdf))
             {
-                Document document = new Document(pdf);
 
                 // Настройка шрифта
                 try
@@ -133,7 +133,7 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
                 document.Add(new Paragraph($"Аудиторский отчет от: {DateTime.Now.ToShortDateString()}"));
                 document.Add(new Paragraph($"По подразделению: {departament.Name}"));
 
-                document.Add(container);
+               // document.Add(container);
 
                 document.Add(new Paragraph($"Уникальный идентификатор пользователя: {userId}"));
                 document.Add(new Paragraph($"ФИО аудитора: {user.FullName}"));
@@ -173,7 +173,6 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
                     }
                     // 🔥 Ячейка только с огнём и emoji-шрифтом
                     Paragraph fireEmoji = new Paragraph(impactScore).SetFont(emojiFont).SetFontSize(10);
-                    // Можешь варьировать размер
                     table.AddCell(new Cell().Add(fireEmoji));
                     var probabilityScore = string.Empty;
                     for (int i = 0; i < Convert.ToInt64(departmentRisksAssessment.ProbabilityScore); i++)
@@ -188,12 +187,28 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
                 // Добавляем таблицу в документ
                 document.Add(table);
                 document.Add(new Paragraph($"Заключение аудитора: {request.Content}"));
-
                 document.Close();
+                // Получаем байты PDF из memory stream
+                document.Flush();
+                pdfBytes = memoryStream.ToArray();
             }
-
+            await SaveReportToDatabase(report, pdfBytes);
             return Ok("Отчёт успешно создан и сохранён в 'Мои документы/Reports'");
 
+        }
+        private async Task SaveReportToDatabase(AuditReport report, byte[] pdfBytes)
+        {
+            try
+            {
+                report.PdfReport = pdfBytes;
+                db.AuditReports.Add(report);
+                await db.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                // Логируем ошибку, но не прерываем основной поток
+                Console.WriteLine($"Ошибка при сохранении отчета в БД: {ex.Message}");
+            }
         }
 
         [HttpGet("CanReportBuild")]
@@ -202,6 +217,69 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
             var canBeReportBuild = _riskService.GetRisksForDepartment(departmentId)
                         .TrueForAll(x => x.IsHaveAssessment);
             return Json(canBeReportBuild);
+        }
+
+        [HttpGet("DownloadReport/{reportId}")]
+        public IActionResult DownloadReport(int reportId)
+        {
+            var report = db.AuditReports.FirstOrDefault(r => r.ReportId == reportId);
+
+            if (report == null || report.PdfReport == null)
+                return NotFound("Отчет не найден");
+
+            // Проверяем размер файла (должен быть больше 1KB)
+            if (report.PdfReport.Length < 1024)
+            {
+                return BadRequest("PDF файл поврежден или слишком мал");
+            }
+
+            // Возвращаем PDF файл
+            return File(report.PdfReport, "application/pdf", $"report_{reportId}.pdf");
+        }
+
+        [HttpGet("GetReports/{departmentsId}")]
+        public List<AuditReport> GetReportsByDepartment(int departmentsId)
+        {
+            var reports = db.AuditReports.Where(r => r.DepartmentId == departmentsId).ToList();
+
+            // Возвращаем PDF файл
+            return reports;
+        }
+        [HttpPost("DeleteReport/{reportId}")]
+        public async Task<IActionResult> DeleteReport(int reportId)
+        {
+            try
+            {
+                var report = await db.AuditReports.FirstOrDefaultAsync(r => r.ReportId == reportId);
+
+                if (report == null)
+                {
+                    return NotFound(new { message = "Отчет не найден" });
+                }
+
+                db.AuditReports.Remove(report);
+                await db.SaveChangesAsync();
+
+                return Ok(new { message = "Отчет успешно удален" });
+            }
+            catch (Exception ex)
+            {
+                // Логируем ошибку
+                Console.WriteLine($"Ошибка при удалении отчета {reportId}: {ex.Message}");
+                return StatusCode(500, new { message = "Произошла ошибка при удалении отчета" });
+            }
+        }
+
+        [HttpGet("ViewReport/{reportId}")]
+        public IActionResult ViewReport(int reportId)
+        {
+            var report = db.AuditReports.FirstOrDefault(r => r.ReportId == reportId);
+
+            if (report == null || report.PdfReport == null)
+                return NotFound("Отчет не найден");
+
+            // Показать в браузере (не скачивать)
+            return File(report.PdfReport, "application/pdf");
         }
     }
 }
