@@ -1,5 +1,0 @@
-INSERT INTO corp_risk_management.users (user_id, username, password_hash, email, full_name, role) 
-VALUES 
-    (2, '111@111', '111', '111@111', '111', 'Auditor'),
-    (1, '222@222', '222', '222@222', '222', 'Manager'),
-    (3, 'vsgolub@mail.ru', '111', 'vsgolub@mail.ru', 'Голуб Владислав Сергеевич', 'Administrator');
