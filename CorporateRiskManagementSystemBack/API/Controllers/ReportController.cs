@@ -44,6 +44,10 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
         public async Task<IActionResult> CreateReport([FromBody] CreateReportRequest request)
         {
             var departmentRisks = _riskService.GetRisksForDepartment(request.DepartmentId);
+            if (departmentRisks.Count() == 0)
+            {
+                return BadRequest("Нет созданных рисков для создания аудиторского отчёта");
+            }
             if (departmentRisks.TrueForAll(u => !u.IsHaveAssessment))
             {
                 return BadRequest("Необходимо выполнить оценку всех существующих рисков для отдела");
@@ -78,12 +82,12 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
             string reportsFolderPath = Path.Combine(documentsPath, "Reports");
             Directory.CreateDirectory(reportsFolderPath);
             string pdfPath = Path.Combine(reportsFolderPath, $"{username}_doc.pdf");
-            byte[] pdfBytes; // Объявляем переменную для хранения байтов PDF
+            byte[] pdfBytes;
             string fontPath = Path.Combine(Directory.GetCurrentDirectory(), "Properties", "ARIAL.TTF");
             string imagePath = Path.Combine(Directory.GetCurrentDirectory(), "Properties", "logo.png");
 
             using (var memoryStream = new MemoryStream())
-            using (var writer = new PdfWriter(memoryStream))  // ТОЛЬКО ОДИН writer!
+            using (var writer = new PdfWriter(memoryStream))
             using (var pdf = new PdfDocument(writer))
             using (var document = new Document(pdf))
             {
