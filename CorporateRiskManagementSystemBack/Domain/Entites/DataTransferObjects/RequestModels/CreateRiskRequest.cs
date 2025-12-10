@@ -9,5 +9,7 @@
         public int DepartmentId { get; set; }  // ID отдела
         public string UsernameId { get; set; }
 
+        public string RiskType { get; set; }
+
     }
 }

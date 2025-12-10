@@ -52,12 +52,17 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
                 return BadRequest("Пользователь с авторизоавнным юзернейном не найден");
 
             }
+            RiskType riskType;
+            if (!Enum.TryParse<RiskType>(request.RiskType, true, out riskType))
+            {
+                riskType = RiskType.Operational;
+            }
             var newRisk = new Risk()
             {
                 CreatedById = userId,
                 CreatedAt = DateTime.Now,
                 Title = request.Title,
-                RiskType = RiskType.Operational,
+                RiskType = riskType,
                 Description = request.Description,
                 Likelihood = request.Likelihood,
                 Severity = request.Severity,
