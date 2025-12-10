@@ -1,28 +1,20 @@
-﻿using CorporateRiskManagementSystemBack.Domain.Entites.DataTransferObjects.RequestModels;
-using CorporateRiskManagementSystemBack.Domain.Entites;
-using Microsoft.AspNetCore.Mvc;
-using CorporateRiskManagementSystemBack.Application.Interfaces;
+﻿using CorporateRiskManagementSystemBack.Application.Interfaces;
 using CorporateRiskManagementSystemBack.Application.Services;
+using CorporateRiskManagementSystemBack.Domain.Common.Extensions;
+using CorporateRiskManagementSystemBack.Domain.Entites;
+using CorporateRiskManagementSystemBack.Domain.Entites.DataTransferObjects.RequestModels;
+using CorporateRiskManagementSystemBack.Infrastructure.Data;
+using iText.IO.Font;
+using iText.IO.Image;
+using iText.Kernel.Font;
+using iText.Kernel.Geom;
 using iText.Kernel.Pdf;
 using iText.Layout;
 using iText.Layout.Element;
-using CorporateRiskManagementSystemBack.Infrastructure.Data;
-using iText.IO.Image;
-using iText.Kernel.Font;
-using iText.Kernel.Pdf.Canvas.Draw;
 using iText.Layout.Properties;
-using Newtonsoft.Json;
-using iText.IO.Font;
-using iText.Kernel.Geom;
-using Path = System.IO.Path;
-using Org.BouncyCastle.Utilities;
-using iText.Kernel.Pdf.Canvas;
-using iText.Kernel.Pdf.Extgstate;
-using iText.Layout.Borders;
-using iText.Kernel.Colors;
-using iText.Kernel.Pdf.Xobject;
-using System.IO;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Path = System.IO.Path;
 
 namespace CorporateRiskManagementSystemBack.API.Controllers
 {
@@ -131,20 +123,20 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
 
                     // Установка абсолютной позиции и прозрачности
                     img.SetFixedPosition(1, x, y); // страница 1, координаты
-                    //img.SetOpacity(0.3f); // 30% прозрачность
                     container.Add(img);
+                    document.Add(container);
                 }
                 document.Add(new Paragraph($"Аудиторский отчет от: {DateTime.Now.ToShortDateString()}"));
                 document.Add(new Paragraph($"По подразделению: {departament.Name}"));
 
                // document.Add(container);
 
-                document.Add(new Paragraph($"Уникальный идентификатор пользователя: {userId}"));
+                document.Add(new Paragraph($"Уникальный идентификатор автора отчёта: {userId}"));
                 document.Add(new Paragraph($"ФИО аудитора: {user.FullName}"));
                 document.Add(new Paragraph($"Электронная почта: {user.Email}"));
 
                 // Создаем таблицу с нужным количеством столбцов
-                float[] columnWidths = { 1, 2, 1, 2, 2, 2};  // Количество столбцов и их ширина (относительная, в части от всей ширины страницы)
+                float[] columnWidths = { 1, 2, 2, 1, 2, 2, 2};  // Количество столбцов и их ширина (относительная, в части от всей ширины страницы)
 
                 Table table = new Table(UnitValue.CreatePercentArray(columnWidths));
                 // Загружаем шрифт для емодзи
@@ -155,19 +147,20 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
                 // Добавляем заголовки столбцов
                 table.AddCell("Риск ID");
                 table.AddCell("Название");
+                table.AddCell("Тип риска");
                 table.AddCell("Вероятность");
                 table.AddCell("Серьёзность");
                 table.AddCell("Оценка влияния");
                 table.AddCell("Оценка вероятности");
 
+
                 // Перебираем все риски и добавляем их в таблицу
                 foreach (var risk in departmentRisks)
                 {
                     var departmentRisksAssessment = _riskService.GetAssessmentForRisk(risk.RiskId);
-
-                    // Добавляем данные для каждого риска в строку таблицы
                     table.AddCell(risk.RiskId.ToString());
                     table.AddCell(risk.Title);
+                    table.AddCell(risk.RiskType.GetName());
                     table.AddCell(risk.Likelihood.ToString());
                     table.AddCell(risk.Severity.ToString());
                     var impactScore = string.Empty;
@@ -175,7 +168,7 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
                     {
                         impactScore += "🔥"; 
                     }
-                    // 🔥 Ячейка только с огнём и emoji-шрифтом
+                    // 🔥 Ячейка только с огнём и эмоджи-шрифтом
                     Paragraph fireEmoji = new Paragraph(impactScore).SetFont(emojiFont).SetFontSize(10);
                     table.AddCell(new Cell().Add(fireEmoji));
                     var probabilityScore = string.Empty;
@@ -188,30 +181,35 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
 
                 }
 
-                // Добавляем таблицу в документ
                 document.Add(table);
                 document.Add(new Paragraph($"Заключение аудитора: {request.Content}"));
                 document.Close();
-                // Получаем байты PDF из memory stream
                 document.Flush();
                 pdfBytes = memoryStream.ToArray();
             }
-            await SaveReportToDatabase(report, pdfBytes);
-            return Ok("Отчёт успешно создан и сохранён в 'Мои документы/Reports'");
+            var createdReport = await SaveReportToDatabase(report, pdfBytes);
+            return Ok(new
+            {
+                success = true,
+                reportId = createdReport.ReportId,
+                message = "Отчет успешно создан"
+            });
 
         }
-        private async Task SaveReportToDatabase(AuditReport report, byte[] pdfBytes)
+        private async Task<AuditReport> SaveReportToDatabase(AuditReport report, byte[] pdfBytes)
         {
             try
             {
                 report.PdfReport = pdfBytes;
                 db.AuditReports.Add(report);
                 await db.SaveChangesAsync();
+                return report;
             }
             catch (Exception ex)
             {
                 // Логируем ошибку, но не прерываем основной поток
                 Console.WriteLine($"Ошибка при сохранении отчета в БД: {ex.Message}");
+                return new AuditReport();
             }
         }
 
