@@ -6,6 +6,8 @@ namespace CorporateRiskManagementSystemBack.Application.Interfaces
     {
         int CreateRisk(Risk risk);
 
+        Risk? GetRiskById(int riskId);
+        int DeleteRisk(int idRisk);
         int CreateRiskAssessment(RiskAssessment riskAssessment);
 
         int UpdateRiskAssessment(RiskAssessment riskAssessment);

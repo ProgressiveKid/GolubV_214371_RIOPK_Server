@@ -57,7 +57,7 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
                 CreatedById = userId,
                 CreatedAt = DateTime.Now,
                 Title = request.Title,
-                RiskType = RiskType.Operational, // TO DO сделать чтобы их request тянулось
+                RiskType = RiskType.Operational,
                 Description = request.Description,
                 Likelihood = request.Likelihood,
                 Severity = request.Severity,
@@ -143,6 +143,38 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
 
             var createRiskAssessment = _riskService.CreateRiskAssessment(riskAssessment);
             return Ok(new { message = "Оценка успешно добавлена" });
+        }
+
+        [HttpDelete("DeleteRisk")]
+        public async Task<IActionResult> DeleteRisk([FromQuery] int riskId)
+        {
+            try
+            {
+                // Проверяем существует ли риск
+                var risk = _riskService.GetRiskById(riskId);
+                if (risk == null)
+                {
+                    return NotFound(new { message = "Риск не найден" });
+                }
+
+                var assessment = _riskService.GetAssessmentForRisk(riskId);
+
+                // Удаляем риск и связанные оценки
+                var result = _riskService.DeleteRisk(riskId);
+
+                if (result == 1)
+                {
+                    return Ok(new { message = "Риск и связанные оценки успешно удалены" });
+                }
+                else
+                {
+                    return StatusCode(500, new { message = "Ошибка при удалении риска" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Ошибка при удалении риска: {ex.Message}" });
+            }
         }
 
         // GET: RiskController

@@ -1,9 +1,7 @@
-﻿using CorporateRiskManagementSystemBack.Application.Interfaces;
-using CorporateRiskManagementSystemBack.Domain.Entites;
+﻿using CorporateRiskManagementSystemBack.Domain.Entites;
 using CorporateRiskManagementSystemBack.Infrastructure.Data;
 using CorporateRiskManagementSystemBack.Infrastructure.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace CorporateRiskManagementSystemBack.Infrastructure.Repositories
 {
@@ -31,6 +29,49 @@ namespace CorporateRiskManagementSystemBack.Infrastructure.Repositories
             // Сохранение изменений
             db.SaveChanges();
             return risk.RiskId;
+        }
+
+        public Risk? GetRiskById(int riskId)
+        {
+            return db.Risks
+                .Include(r => r.RiskAssessments)
+                .FirstOrDefault(r => r.RiskId == riskId);
+        }
+
+        public int DeleteRisk(int riskId)
+        {
+            using var transaction = db.Database.BeginTransaction();
+
+            try
+            {
+                // Находим риск с его оценками
+                var risk = db.Risks
+                    .Include(r => r.RiskAssessments)
+                    .FirstOrDefault(r => r.RiskId == riskId);
+
+                if (risk == null)
+                    return -1;
+
+                // Удаляем связанные оценки риска
+                if (risk.RiskAssessments != null && risk.RiskAssessments.Any())
+                {
+                    db.RiskAssessments.RemoveRange(risk.RiskAssessments);
+                }
+
+                // Удаляем сам риск
+                db.Risks.Remove(risk);
+
+                // Сохраняем изменения
+                db.SaveChanges();
+                transaction.Commit();
+
+                return 1;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
         }
 
         public int CreateNewRisk(Risk risk)

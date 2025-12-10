@@ -6,6 +6,10 @@ namespace CorporateRiskManagementSystemBack.Infrastructure.Repositories.Interfac
     public interface IRiskRepository
     {
         int CreateNewRisk(Risk risk);
+
+        Risk? GetRiskById(int riskId);
+        int DeleteRisk(int idRisk);
+
         int CreateRiskAssessment(RiskAssessment riskAssessment);
 
         int LinkRiskToDepartment(int idRisk, int departmentId);

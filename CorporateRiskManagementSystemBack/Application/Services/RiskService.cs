@@ -1,8 +1,6 @@
 ﻿using CorporateRiskManagementSystemBack.Application.Interfaces;
 using CorporateRiskManagementSystemBack.Domain.Entites;
-using CorporateRiskManagementSystemBack.Infrastructure.Repositories;
 using CorporateRiskManagementSystemBack.Infrastructure.Repositories.Interfaces;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 
 namespace CorporateRiskManagementSystemBack.Application.Services
 {
@@ -15,6 +13,16 @@ namespace CorporateRiskManagementSystemBack.Application.Services
             _riskRepository = riskRepository;
         }
         public int CreateRisk(Risk risk) => _riskRepository.CreateNewRisk(risk);
+
+        public Risk? GetRiskById(int riskId)
+        {
+            return _riskRepository.GetRiskById(riskId);
+        }
+
+        public int DeleteRisk(int riskId)
+        {
+            return _riskRepository.DeleteRisk(riskId);
+        }
 
         public int CreateRiskAssessment(RiskAssessment riskAssessment) => _riskRepository.CreateRiskAssessment(riskAssessment);
 
