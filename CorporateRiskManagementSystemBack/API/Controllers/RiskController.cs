@@ -3,7 +3,9 @@ using CorporateRiskManagementSystemBack.Application.Services;
 using CorporateRiskManagementSystemBack.Domain.Entites;
 using CorporateRiskManagementSystemBack.Domain.Entites.DataTransferObjects.RequestModels;
 using CorporateRiskManagementSystemBack.Domain.Entites.Enums;
+using CorporateRiskManagementSystemBack.Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CorporateRiskManagementSystemBack.API.Controllers
 {
@@ -13,9 +15,11 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
     {
         IRiskService _riskService;
         IUserService _userService;
-        public RiskController(IRiskService riskService, IUserService userService)        {
+        RiskDbContext _dbContext;
+        public RiskController(            IRiskService riskService,            IUserService userService,            RiskDbContext dbContext)        {
             _riskService = riskService;
             _userService = userService;
+            _dbContext = dbContext;
         }
 
 
@@ -69,6 +73,16 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
             };
 
             var createdRiskId = _riskService.CreateRisk(newRisk);
+            var initialStatus = new Status
+            {
+                RiskId = newRisk.RiskId,
+                StatusName = RiskStatuses.NoAssessment,
+                StatusDescription = "Аудитор создал риск - ожидаем оценки",
+                ChangedById = userId,
+                ChangedAt = DateTime.Now
+            };
+
+            _dbContext.Statuses.Add(initialStatus);
             var linkedDepartment = _riskService.LinkRiskToDepartment(createdRiskId, request.DepartmentId);
 
             return Ok(new { message = "Risk created successfully" });
@@ -78,7 +92,6 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
         public async Task<JsonResult> GetRisksForDepartment([FromQuery] int departmentId)
         {
             var departmentRisks = _riskService.GetRisksForDepartment(departmentId);
-
             return Json(departmentRisks);
         }
 
@@ -114,7 +127,6 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
             };
 
             var updatedAssessment = _riskService.UpdateRiskAssessment(riskAssessment);
-
             return Json(updatedAssessment);
         }
 
@@ -147,6 +159,16 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
             };
 
             var createRiskAssessment = _riskService.CreateRiskAssessment(riskAssessment);
+            var assessmentStatus = new Status
+            {
+                RiskId = request.RiskId,
+                StatusName = RiskStatuses.AssessmentCompleted,
+                StatusDescription = "Аудитор произвёл оценку риска",
+                ChangedById = userId,
+                ChangedAt = DateTime.Now
+            };
+
+            _dbContext.Statuses.Add(assessmentStatus);
             return Ok(new { message = "Оценка успешно добавлена" });
         }
 
@@ -180,6 +202,104 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
             {
                 return StatusCode(500, new { message = $"Ошибка при удалении риска: {ex.Message}" });
             }
+        }
+
+        [HttpGet("GetRisksWithStatus")]
+        public async Task<IActionResult> GetRisksWithStatus([FromQuery] int departmentId)
+        {
+            var r2isks = await _dbContext.Risks
+                .Where(r => r.Departments.Any(d => d.DepartmentId == departmentId))
+                .Include(r => r.CreatedBy)
+                .Include(r => r.Departments)
+                .Include(r => r.RiskAssessments)
+                    .ThenInclude(ra => ra.AssessedBy)
+                .Include(r => r.Statuses)  // Include после Where
+                    .ThenInclude(s => s.ChangedBy)
+                .ToListAsync();
+
+            var risks = await _dbContext.Risks
+                .Include(r => r.CreatedBy)
+                .Include(r => r.Departments)
+                .Include(r => r.RiskAssessments)
+                    .ThenInclude(ra => ra.AssessedBy)
+                .Include(r => r.Statuses)
+                    .ThenInclude(s => s.ChangedBy)
+                .Where(r => r.Departments.Any(d => d.DepartmentId == departmentId))
+                .Select(r => new
+                {
+                    r.RiskId,
+                    r.Title,
+                    r.Description,
+                    r.Severity,
+                    r.Likelihood,
+                    r.RiskType,
+                    r.CreatedAt,
+                    CreatedBy = r.CreatedBy.FullName,
+                    Departments = r.Departments.Select(d => new { d.DepartmentId, d.Name }),
+                    RiskAssessments = r.RiskAssessments.Select(ra => new
+                    {
+                        ra.AssessmentId,
+                        ra.ImpactScore,
+                        ra.ProbabilityScore,
+                        ra.Notes,
+                        ra.AssessmentDate,
+                        AssessedBy = ra.AssessedBy != null ? new
+                        {
+                            ra.AssessedBy.FullName,
+                            ra.AssessedBy.UserId
+                        } : null
+                    }).ToList(),
+
+                    // Текущий статус (последний по дате)
+                    CurrentStatus = r.Statuses
+                        .OrderByDescending(s => s.ChangedAt)
+                        .Select(s => new
+                        {
+                            StatusName = s.StatusName,
+                            StatusDescription = s.StatusDescription,
+                            ChangedAt = s.ChangedAt,
+                            ChangedBy = s.ChangedBy.FullName
+                        })
+                        .FirstOrDefault() ?? (new
+                        {
+                            StatusName = "Оценка отсутствует",
+                            StatusDescription = "Статус не установлен",
+                            ChangedAt = r.CreatedAt,
+                            ChangedBy = r.CreatedBy.FullName
+                        }),
+
+                    // История статусов
+                    StatusHistory = r.Statuses
+                        .OrderByDescending(s => s.ChangedAt)
+                        .Select(s => new
+                        {
+                            s.StatusName,
+                            s.StatusDescription,
+                            s.ChangedAt,
+                            ChangedBy = s.ChangedBy.FullName
+                        })
+                        .ToList()
+                })
+                .ToListAsync();
+
+            var result = risks.Select(r => new
+            {
+                r.RiskId,
+                r.Title,
+                r.Description,
+                r.Severity,
+                r.Likelihood,
+                r.RiskType,
+                r.CreatedAt,
+                r.CreatedBy,
+                r.Departments,
+                r.RiskAssessments,
+                r.CurrentStatus,
+                r.StatusHistory,
+                IsHaveAssessment = r.RiskAssessments.Count > 0
+            });
+
+            return Ok(result);
         }
 
         // GET: RiskController

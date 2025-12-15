@@ -23,6 +23,8 @@ namespace CorporateRiskManagementSystemBack.Infrastructure.Data
         public virtual DbSet<RiskAssessment> RiskAssessments { get; set; } = null!;
         public virtual DbSet<User> Users { get; set; } = null!;
 
+        public virtual DbSet<Status> Statuses { get; set; } = null!;
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
@@ -213,6 +215,54 @@ namespace CorporateRiskManagementSystemBack.Infrastructure.Data
                 entity.Property(e => e.Username)
                     .HasMaxLength(100)
                     .HasColumnName("username");
+            });
+
+            modelBuilder.Entity<Status>(entity =>
+            {
+                entity.ToTable("statuses", "corp_risk_management");
+
+                entity.HasKey(e => e.StatusId)
+                    .HasName("statuses_pkey");
+
+                entity.HasIndex(e => e.RiskId, "idx_statuses_risk_id");
+                entity.HasIndex(e => e.StatusName, "idx_statuses_status_name");
+                entity.HasIndex(e => e.ChangedAt, "idx_statuses_changed_at");
+
+                entity.Property(e => e.StatusId)
+                    .HasColumnName("status_id")
+                    .HasDefaultValueSql("nextval('statuses_status_id_seq')");
+
+                entity.Property(e => e.RiskId)
+                    .HasColumnName("risk_id");
+
+                entity.Property(e => e.StatusName)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .HasColumnName("status_name");
+
+                entity.Property(e => e.StatusDescription)
+                    .HasColumnName("status_description");
+
+                entity.Property(e => e.ChangedAt)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("changed_at")
+                    .HasDefaultValueSql("now()");
+
+                entity.Property(e => e.ChangedById)
+                    .HasColumnName("changed_by_id");
+
+                // Связи
+                entity.HasOne(d => d.Risk)
+                    .WithMany(p => p.Statuses)
+                    .HasForeignKey(d => d.RiskId)
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .HasConstraintName("statuses_risk_id_fkey");
+
+                entity.HasOne(d => d.ChangedBy)
+                    .WithMany(p => p.StatusChanges)
+                    .HasForeignKey(d => d.ChangedById)
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .HasConstraintName("statuses_changed_by_id_fkey");
             });
 
             OnModelCreatingPartial(modelBuilder);

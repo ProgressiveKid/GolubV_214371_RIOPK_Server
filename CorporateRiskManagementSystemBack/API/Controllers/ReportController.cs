@@ -3,6 +3,7 @@ using CorporateRiskManagementSystemBack.Application.Services;
 using CorporateRiskManagementSystemBack.Domain.Common.Extensions;
 using CorporateRiskManagementSystemBack.Domain.Entites;
 using CorporateRiskManagementSystemBack.Domain.Entites.DataTransferObjects.RequestModels;
+using CorporateRiskManagementSystemBack.Domain.Entites.Enums;
 using CorporateRiskManagementSystemBack.Infrastructure.Data;
 using iText.IO.Font;
 using iText.IO.Image;
@@ -25,7 +26,10 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
         RiskDbContext db;
         IRiskService _riskService;
         IUserService _userService;
-        public ReportController(RiskDbContext db, IRiskService riskService, IUserService userService)
+        public ReportController(
+            RiskDbContext db,
+            IRiskService riskService,
+            IUserService userService)
         {
             this.db = db;
             _riskService = riskService;
@@ -35,16 +39,23 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
         [HttpPost("CreateReport")]
         public async Task<IActionResult> CreateReport([FromBody] CreateReportRequest request)
         {
-            var departmentRisks = _riskService.GetRisksForDepartment(request.DepartmentId);
-            if (departmentRisks.Count() == 0)
+            var allDepartmentRisks = _riskService.GetRisksForDepartment(request.DepartmentId).ToList();
+            if (allDepartmentRisks.Count() == 0)
             {
                 return BadRequest("Нет созданных рисков для создания аудиторского отчёта");
             }
-            if (departmentRisks.TrueForAll(u => !u.IsHaveAssessment))
+            if (allDepartmentRisks.TrueForAll(u => !u.IsHaveAssessment))
             {
                 return BadRequest("Необходимо выполнить оценку всех существующих рисков для отдела");
             }
-          
+            var departmentRisks = allDepartmentRisks
+                .Where(x => x.CurrentStatus?.StatusName != RiskStatuses.Completed
+                        && x.CurrentStatus?.StatusName != RiskStatuses.Cancelled).ToList();
+            if (departmentRisks.Count() == 0)
+            {
+                return BadRequest("Нет актуальных рисков для данного подразделения");
+            }
+
             var userId = _userService.GetUserIdByName(request.Username);
             if (userId == 0)
             {
@@ -122,7 +133,7 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
                     float y = pageHeight - img.GetImageScaledHeight() - 20;
 
                     // Установка абсолютной позиции и прозрачности
-                    img.SetFixedPosition(1, x, y); // страница 1, координаты
+                    img.SetFixedPosition(1, x, y);
                     container.Add(img);
                     document.Add(container);
                 }

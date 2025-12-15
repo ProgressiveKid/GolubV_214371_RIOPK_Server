@@ -22,5 +22,7 @@ namespace CorporateRiskManagementSystemBack.Domain.Entites
         public virtual ICollection<AuditReport> AuditReports { get; set; }
         public virtual ICollection<RiskAssessment> RiskAssessments { get; set; }
         public virtual ICollection<Risk> Risks { get; set; }
+
+        public virtual ICollection<Status> StatusChanges { get; set; } = new HashSet<Status>();
     }
 }

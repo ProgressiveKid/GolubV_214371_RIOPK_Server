@@ -90,6 +90,7 @@ namespace CorporateRiskManagementSystemBack.Infrastructure.Repositories
             var risks = db.Risks
                           .Where(r => r.Departments.Any(d => d.DepartmentId == departmentId))
                           .Include(r => r.RiskAssessments)
+                          .Include(r => r.Statuses)
                           .ToList();
             return risks;
         }
