@@ -125,7 +125,7 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
                 ProbabilityScore = (short)request.ProbabilityScore,
                 Notes = request.Notes,
             };
-
+            var allStatuses = _dbContext.Statuses.Where(x => x.RiskId == request.RiskId).ToList();
             var updatedAssessment = _riskService.UpdateRiskAssessment(riskAssessment);
             return Json(updatedAssessment);
         }
@@ -168,7 +168,17 @@ namespace CorporateRiskManagementSystemBack.API.Controllers
                 ChangedAt = DateTime.Now
             };
 
-            _dbContext.Statuses.Add(assessmentStatus);
+            try
+            {
+                _dbContext.Statuses.Add(assessmentStatus);
+                var changes = _dbContext.SaveChanges(); // Вернет количество измененных строк
+                Console.WriteLine($"Saved {changes} entities"); // Должно быть >= 1
+            }
+            catch (DbUpdateException ex)
+            {
+                var innerException = ex.InnerException?.Message;
+                // Логируйте ошибку
+            }
             return Ok(new { message = "Оценка успешно добавлена" });
         }
 
